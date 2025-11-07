@@ -1,1 +1,621 @@
-<!doctype html><html lang='en'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width,initial-scale=1'/><title>UrbanHarvest Demo</title></head><body><div id='root'></div><script type='module' src='/src/main.jsx'></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UrbanHarvest — Demo</title>
+
+  <!-- Tailwind Play CDN: provides Tailwind utilities in the browser -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Optional: load Inter font for closer match -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    html,body,#root { height: 100%; }
+    body { font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React + ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Babel standalone so we can use JSX directly in the browser (development only) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- App code (JSX) -->
+  <script type="text/babel">
+  // Paste of the single-file React app (slightly adapted for browser execution)
+  const { useState, useMemo } = React;
+
+  // ---------- Mock Data ----------
+  const PRODUCTS = [
+    {
+      id: "p1",
+      name: "Butterhead Lettuce",
+      price: 79,
+      unit: "150g",
+      category: "Leafy",
+      badges: ["Pesticide-free", "Hydroponic"],
+      images: [
+        "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1200&q=80&auto=format&fit=crop",
+      ],
+      short_desc: "Tender heads with a sweet, mellow crunch.",
+      long_desc:
+        "Grown in a controlled hydroponic system for consistent texture and flavor. Rinse and store in a breathable container for up to 5 days.",
+      nutrition: "Per 100g: 15 kcal • 1.4g protein • Rich in Vit. A, K",
+      storage_tips: "Refrigerate at 2–4°C in a perforated bag.",
+      farm_location: "Hyderabad City Farm",
+      availability: "In stock",
+      sku: "UH-LTS-150",
+    },
+    {
+      id: "p2",
+      name: "Genovese Basil",
+      price: 59,
+      unit: "50g",
+      category: "Herbs",
+      badges: ["Harvested today"],
+      images: [
+        "https://images.unsplash.com/photo-1498842812179-c81beecf902c?w=1200&q=80&auto=format&fit=crop",
+      ],
+      short_desc: "Aromatic leaves perfect for pesto and salads.",
+      long_desc:
+        "Hydroponic basil with concentrated aroma. Keep stems in a glass of water at room temperature, or refrigerate loosely wrapped.",
+      nutrition: "Per 10g: 3 kcal • Antioxidants • Vitamin K",
+      storage_tips: "Avoid crushing; store loosely to retain oils.",
+      farm_location: "Gachibowli Pod",
+      availability: "Low stock",
+      sku: "UH-BSL-050",
+    },
+    {
+      id: "p3",
+      name: "Red Oakleaf Mix",
+      price: 89,
+      unit: "150g",
+      category: "Leafy",
+      badges: ["Hydroponic"],
+      images: [
+        "https://images.unsplash.com/photo-1506806732259-39c2d0268443?w=1200&q=80&auto=format&fit=crop",
+      ],
+      short_desc: "Delicate leaves with nutty undertones.",
+      long_desc:
+        "A chef-favorite for plating and texture. Rinse gently and spin dry before serving.",
+      nutrition: "Per 100g: 18 kcal • Folate • Vit. A",
+      storage_tips: "Use within 3–4 days for peak crunch.",
+      farm_location: "Madhapur Vertical",
+      availability: "In stock",
+      sku: "UH-OKL-150",
+    },
+    {
+      id: "p4",
+      name: "Microgreens Sampler",
+      price: 129,
+      unit: "100g",
+      category: "Microgreens",
+      badges: ["Nutrient-dense"],
+      images: [
+        "https://images.unsplash.com/photo-1593179241555-c2c6d3bda8b1?w=1200&q=80&auto=format&fit=crop",
+      ],
+      short_desc: "Peppery, bright, and packed with micronutrients.",
+      long_desc:
+        "Mix of radish, broccoli, and pea shoots. Add to bowls, tacos, and sandwiches.",
+      nutrition: "Per 50g: 20 kcal • High phytonutrients",
+      storage_tips: "Keep dry; add just before serving.",
+      farm_location: "Kondapur Pod",
+      availability: "In stock",
+      sku: "UH-MIC-100",
+    },
+  ];
+
+  const POSTS = [
+    {
+      slug: "hydroponics-basics",
+      title: "Hydroponics 101: How We Grow Without Soil",
+      hero_image:
+        "https://images.unsplash.com/photo-1524594224081-4f3ba2995d65?w=1200&q=80&auto=format&fit=crop",
+      excerpt:
+        "A quick primer on nutrient film technique, water savings, and why your greens taste better.",
+      body:
+        "In our vertical farms, plants receive a precisely balanced nutrient solution. This reduces water use by up to 95% versus conventional fields and keeps produce clean and fresh.",
+      author: "Team UrbanHarvest",
+      tags: ["Hydroponics", "Sustainability"],
+      publish_date: "2025-09-12",
+    },
+    {
+      slug: "storage-tips",
+      title: "Make Your Greens Last Longer: Storage Tips",
+      hero_image:
+        "https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?w=1200&q=80&auto=format&fit=crop",
+      excerpt: "Five easy habits to keep leaves crisp and herbs aromatic.",
+      body:
+        "Store leafy greens dry and cold. Use a breathable bag and avoid crushing. Herbs prefer gentle handling and minimal moisture.",
+      author: "UrbanHarvest Kitchen",
+      tags: ["Kitchen", "How-To"],
+      publish_date: "2025-10-02",
+    },
+  ];
+
+  const LOCATIONS = [
+    {
+      name: "Hyderabad City Farm",
+      type: "farm",
+      address: "Plot 12, Financial District, Hyderabad",
+      hours: "Daily 9:00–18:00",
+      contact: "+91-80000-00000",
+      images: [
+        "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=1200&q=80&auto=format&fit=crop",
+      ],
+    },
+    {
+      name: "Gachibowli Pod",
+      type: "farm",
+      address: "Near ISB, Hyderabad",
+      hours: "Mon–Sat 10:00–19:00",
+      contact: "+91-80000-00001",
+      images: [
+        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80&auto=format&fit=crop",
+      ],
+    },
+    {
+      name: "Madhapur Retail",
+      type: "store",
+      address: "100 Jubilee Hills Rd, Hyderabad",
+      hours: "Daily 10:00–21:00",
+      contact: "+91-80000-00002",
+      images: [
+        "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&q=80&auto=format&fit=crop",
+      ],
+    },
+  ];
+
+  // ---------- Helpers ----------
+  const currency = (n) => `₹${n.toLocaleString("en-IN")}`;
+
+  function useFilteredProducts(products) {
+    const [q, setQ] = useState("");
+    const [cat, setCat] = useState("All");
+    const filtered = useMemo(() => {
+      return products.filter((p) => {
+        const matchQ = (p.name + " " + p.short_desc).toLowerCase().includes(q.toLowerCase());
+        const matchC = cat === "All" || p.category === cat;
+        return matchQ && matchC;
+      });
+    }, [products, q, cat]);
+    return { filtered, q, setQ, cat, setCat };
+  }
+
+  function DeliveryChecker() {
+    const [pin, setPin] = useState("");
+    const [result, setResult] = useState(null);
+    const check = () => {
+      // Mock rule: serviceable if PIN starts with 50-53
+      const ok = /^(50|51|52|53)\d{4}$/.test(pin);
+      setResult(ok);
+    };
+    return (
+      <div className="space-y-2">
+        <label htmlFor="pin" className="text-sm font-medium text-gray-700">
+          Check delivery to your PIN code
+        </label>
+        <div className="flex gap-2">
+          <input
+            id="pin"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={6}
+            value={pin}
+            onChange={(e)=>setPin(e.target.value.replace(/[^0-9]/g,""))}
+            placeholder="e.g., 500032"
+            className="w-40 rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <button onClick={check} className="rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            Check
+          </button>
+        </div>
+        {result === true && <p className="text-sm text-emerald-700">✅ We currently deliver to your area.</p>}
+        {result === false && <p className="text-sm text-rose-700">❌ Sorry, we don’t deliver there yet.</p>}
+      </div>
+    );
+  }
+
+  // ---------- Components ----------
+  function Header({ onOpenCart }) {
+    const [open, setOpen] = useState(false);
+    return (
+      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <a href="#home" className="flex items-center gap-3">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-600 text-white">UH</span>
+            <span className="text-lg font-semibold tracking-tight text-gray-900">UrbanHarvest</span>
+          </a>
+          <nav className="hidden gap-6 md:flex">
+            {[
+              ["Shop", "#shop"],
+              ["Farms", "#farms"],
+              ["Subscriptions", "#subscriptions"],
+              ["Learn", "#learn"],
+              ["About", "#about"],
+              ["Contact", "#contact"],
+            ].map(([label, href]) => (
+              <a key={href} href={href} className="text-sm text-gray-700 hover:text-gray-900">{label}</a>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2">
+            <button onClick={onOpenCart} className="rounded-xl border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">Cart</button>
+            <button onClick={()=>setOpen(s=>!s)} className="md:hidden rounded-xl border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50" aria-expanded={open} aria-controls="mobile-nav">Menu</button>
+          </div>
+        </div>
+        {open && (
+          <div id="mobile-nav" className="border-t border-gray-200 bg-white md:hidden">
+            <div className="mx-auto flex max-w-6xl flex-col px-4 py-2">
+              {[
+                ["Shop", "#shop"],
+                ["Farms", "#farms"],
+                ["Subscriptions", "#subscriptions"],
+                ["Learn", "#learn"],
+                ["About", "#about"],
+                ["Contact", "#contact"],
+              ].map(([label, href]) => (
+                <a key={href} href={href} className="py-2 text-sm text-gray-700 hover:text-gray-900">{label}</a>
+              ))}
+            </div>
+          </div>
+        )}
+      </header>
+    );
+  }
+
+  function Hero(){ return (
+    <section id="home" className="relative overflow-hidden">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-50 via-white to-white" />
+      <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">Pesticide-Free, Hyper-Local Greens</h1>
+          <p className="mt-4 text-lg text-gray-600">Grown in controlled farms near you—harvested the day you order.</p>
+          <div className="mt-6 flex gap-3">
+            <a href="#shop" className="rounded-2xl bg-emerald-600 px-5 py-3 text-white shadow hover:bg-emerald-700">Shop Produce</a>
+            <a href="#farms" className="rounded-2xl border border-gray-300 px-5 py-3 text-gray-900 hover:bg-gray-50">Visit a Farm</a>
+          </div>
+          <dl className="mt-10 grid grid-cols-2 gap-6 md:grid-cols-4">
+            {[
+              ["95% less water", "Water saved"],
+              ["No soil, no pesticides", "Clean growth"],
+              ["Harvested same-day", "Freshness"],
+              ["Zero middlemen", "Local"],
+            ].map(([value,label])=>(
+              <div key={label} className="rounded-2xl border border-gray-200 p-4 text-center">
+                <dt className="text-xs text-gray-500">{label}</dt>
+                <dd className="mt-1 text-sm font-semibold text-gray-900">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <img src="https://images.unsplash.com/photo-1485637701891-22f13595b3d1?w=1400&q=80&auto=format&fit=crop" alt="Rows of fresh hydroponic greens in a bright vertical farm" className="h-full w-full rounded-3xl object-cover shadow-xl" />
+      </div>
+    </section>
+  ); }
+
+  function ProductCard({ p, onAdd, onOpen }) {
+    return (
+      <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        <img src={p.images[0]} alt={`${p.name} product image`} className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        <div className="flex flex-1 flex-col gap-2 p-4">
+          <h3 className="text-base font-semibold text-gray-900">{p.name}</h3>
+          <p className="text-sm text-gray-600">{p.short_desc}</p>
+          <div className="mt-auto flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">{p.unit}</p>
+              <p className="text-lg font-semibold text-gray-900">{currency(p.price)}</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={()=>onOpen(p)} className="rounded-xl border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">View</button>
+              <button onClick={()=>onAdd(p)} className="rounded-xl bg-emerald-600 px-3 py-2 text-sm text-white hover:bg-emerald-700">Add</button>
+            </div>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  function Shop({ products, onAdd, onOpen }) {
+    const { filtered, q, setQ, cat, setCat } = useFilteredProducts(products);
+    const cats = ["All", ...Array.from(new Set(products.map((p) => p.category)))];
+    return (
+      <section id="shop" className="border-t border-gray-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <header className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-gray-900">Shop</h2>
+              <p className="text-gray-600">Leafy greens, herbs, and microgreens grown near you.</p>
+            </div>
+            <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row">
+              <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Search products" className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 md:w-64" />
+              <select value={cat} onChange={(e)=>setCat(e.target.value)} className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 md:w-48">
+                {cats.map(c=><option key={c}>{c}</option>)}
+              </select>
+            </div>
+          </header>
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((p)=> <ProductCard key={p.id} p={p} onAdd={onAdd} onOpen={onOpen} />)}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  function ProductModal({ product, onClose, onAdd }) {
+    if (!product) return null;
+    return (
+      <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 grid place-items-center p-4">
+        <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+        <div className="relative z-10 w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-xl">
+          <div className="grid gap-6 md:grid-cols-2">
+            <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+            <div className="p-6">
+              <h3 className="text-xl font-semibold text-gray-900">{product.name}</h3>
+              <p className="mt-1 text-sm text-gray-500">{product.unit} • {product.sku}</p>
+              <p className="mt-3 text-xl font-semibold text-gray-900">{currency(product.price)}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {product.badges.map((b)=> <span key={b} className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">{b}</span>)}
+              </div>
+              <p className="mt-4 text-gray-700">{product.long_desc}</p>
+              <ul className="mt-4 space-y-2 text-sm text-gray-700">
+                <li><strong>Nutrition:</strong> {product.nutrition}</li>
+                <li><strong>Storage:</strong> {product.storage_tips}</li>
+                <li><strong>Farm:</strong> {product.farm_location}</li>
+              </ul>
+              <div className="mt-6 flex gap-3">
+                <button onClick={()=>onAdd(product)} className="rounded-2xl bg-emerald-600 px-5 py-2.5 text-white hover:bg-emerald-700">Add to cart</button>
+                <button onClick={onClose} className="rounded-2xl border border-gray-300 px-5 py-2.5 hover:bg-gray-50">Close</button>
+              </div>
+              <div className="mt-6"><DeliveryChecker /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function Farms() {
+    return (
+      <section id="farms" className="border-t border-gray-200 bg-gray-50">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Farms & Stores</h2>
+          <p className="mt-1 text-gray-600">Visit a nearby pod or retail outlet.</p>
+          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {LOCATIONS.map((l)=>(
+              <article key={l.name} className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                <img src={l.images[0]} alt={`${l.name} photo`} className="h-40 w-full object-cover" />
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-700">{l.type}</span>
+                  </div>
+                  <h3 className="mt-2 text-base font-semibold text-gray-900">{l.name}</h3>
+                  <p className="text-sm text-gray-600">{l.address}</p>
+                  <p className="mt-1 text-xs text-gray-500">Hours: {l.hours}</p>
+                  <a href="#contact" className="mt-3 inline-block text-sm text-emerald-700 hover:underline">Book a tour →</a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  function Learn() {
+    return (
+      <section id="learn" className="border-t border-gray-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Learn</h2>
+          <p className="mt-1 text-gray-600">Science, storage tips, and recipes from our kitchen.</p>
+          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+            {POSTS.map(post=>(
+              <article key={post.slug} className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                <img src={post.hero_image} alt="Blog cover" className="h-44 w-full object-cover" />
+                <div className="p-5">
+                  <h3 className="text-lg font-semibold text-gray-900">{post.title}</h3>
+                  <p className="mt-1 text-sm text-gray-600">{post.excerpt}</p>
+                  <p className="mt-2 text-xs text-gray-500">By {post.author} • {new Date(post.publish_date).toLocaleDateString()}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">{post.tags.map(t=><span key={t} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">{t}</span>)}</div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  function Subscriptions() {
+    const plans = [
+      { id: "s1", name: "Weekly Greens Box", price: 299, desc: "Curated leafies for salads and wraps." },
+      { id: "s2", name: "Herb Lover Pack", price: 199, desc: "Basil, mint, coriander—rotating selection." },
+      { id: "s3", name: "Chef’s Micro Mix", price: 349, desc: "Microgreens for bowls and plating." },
+    ];
+    return (
+      <section id="subscriptions" className="border-t border-gray-200 bg-gray-50">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Subscriptions</h2>
+          <p className="mt-1 text-gray-600">Flexible boxes you can pause or skip anytime.</p>
+          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {plans.map(pl=>(
+              <div key={pl.id} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6">
+                <h3 className="text-lg font-semibold text-gray-900">{pl.name}</h3>
+                <p className="mt-2 text-sm text-gray-600">{pl.desc}</p>
+                <p className="mt-4 text-2xl font-semibold text-gray-900">{currency(pl.price)}<span className="text-sm font-normal text-gray-500"> / week</span></p>
+                <button className="mt-auto rounded-2xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">Choose plan</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  function About() {
+    const stats = [
+      ["2.4M L", "Water saved"],
+      ["18 km", "Food miles cut (avg)"],
+      ["12 pods", "Active sites"],
+      ["0 pesticides", "Residue"],
+    ];
+    return (
+      <section id="about" className="border-t border-gray-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">About UrbanHarvest</h2>
+          <div className="mt-6 grid items-center gap-8 md:grid-cols-2">
+            <div>
+              <p className="text-gray-700">We grow fresh greens in vertical farms close to the neighborhoods we serve. By precisely controlling water, light, and nutrients, we harvest clean, flavorful produce with a smaller environmental footprint.</p>
+              <dl className="mt-6 grid grid-cols-2 gap-4">
+                {stats.map(([v,l])=>(
+                  <div key={l} className="rounded-2xl border border-gray-200 p-4 text-center">
+                    <dt className="text-xs text-gray-500">{l}</dt>
+                    <dd className="mt-1 text-lg font-semibold text-gray-900">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+            <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1400&q=80&auto=format&fit=crop" alt="Vertical racks with LED lighting and lush greens" className="h-full w-full rounded-3xl object-cover shadow" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  function Contact() {
+    return (
+      <section id="contact" className="border-t border-gray-200 bg-gray-50">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Contact</h2>
+          <div className="mt-6 grid gap-8 md:grid-cols-2">
+            <form onSubmit={(e)=>e.preventDefault()} className="space-y-3 rounded-2xl border border-gray-200 bg-white p-6">
+              <div><label className="text-sm text-gray-700" htmlFor="name">Name</label><input id="name" className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+              <div><label className="text-sm text-gray-700" htmlFor="email">Email</label><input id="email" type="email" className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+              <div><label className="text-sm text-gray-700" htmlFor="topic">Topic</label><select id="topic" className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"><option>General</option><option>Orders</option><option>Partnerships</option><option>Farm tours</option></select></div>
+              <div><label className="text-sm text-gray-700" htmlFor="msg">Message</label><textarea id="msg" rows={4} className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+              <div className="flex items-center justify-between"><a href="https://wa.me/" className="text-sm text-emerald-700 hover:underline">WhatsApp us</a><button className="rounded-2xl bg-emerald-600 px-5 py-2.5 text-white hover:bg-emerald-700">Send</button></div>
+            </form>
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                <h3 className="font-semibold text-gray-900">Newsletter</h3>
+                <p className="mt-1 text-sm text-gray-600">Fresh harvests in your inbox.</p>
+                <form onSubmit={(e)=>e.preventDefault()} className="mt-3 flex gap-2"><input placeholder="you@example.com" className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" /><button className="rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">Subscribe</button></form>
+              </div>
+              <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                <h3 className="font-semibold text-gray-900">Policies</h3>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-700"><li><a href="#policies" className="text-emerald-700 hover:underline">Shipping & Delivery</a></li><li><a href="#policies" className="text-emerald-700 hover:underline">Refunds</a></li><li><a href="#policies" className="text-emerald-700 hover:underline">Terms & Privacy</a></li></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  function Policies() {
+    return (
+      <section id="policies" className="border-t border-gray-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Policies</h2>
+          <div className="mt-6 grid gap-6 md:grid-cols-3">
+            {[{title:"Shipping & Delivery", body:"We deliver Monday to Saturday within serviceable PIN codes. Orders placed before 10:00 are usually delivered the same day."},{title:"Refunds & Replacements", body:"If your greens arrive damaged or wilted, contact us within 24 hours for a free replacement or refund."},{title:"Terms & Privacy", body:"We only collect the data needed to fulfill orders and improve our services. See our full policy for details."}].map(pol=>(
+              <article key={pol.title} className="rounded-2xl border border-gray-200 bg-gray-50 p-6"><h3 className="font-semibold text-gray-900">{pol.title}</h3><p className="mt-2 text-sm text-gray-700">{pol.body}</p></article>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  function Footer(){
+    return (
+      <footer className="border-t border-gray-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-10">
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+            <div><h4 className="text-sm font-semibold text-gray-900">Company</h4><ul className="mt-2 space-y-2 text-sm text-gray-700"><li><a href="#about" className="hover:underline">About</a></li><li><a href="#farms" className="hover:underline">Farms</a></li><li><a href="#learn" className="hover:underline">Blog</a></li></ul></div>
+            <div><h4 className="text-sm font-semibold text-gray-900">Shop</h4><ul className="mt-2 space-y-2 text-sm text-gray-700"><li><a href="#shop" className="hover:underline">All products</a></li><li><a href="#subscriptions" className="hover:underline">Subscriptions</a></li></ul></div>
+            <div><h4 className="text-sm font-semibold text-gray-900">Help</h4><ul className="mt-2 space-y-2 text-sm text-gray-700"><li><a href="#policies" className="hover:underline">Shipping</a></li><li><a href="#policies" className="hover:underline">Refunds</a></li><li><a href="#contact" className="hover:underline">Contact</a></li></ul></div>
+            <div><h4 className="text-sm font-semibold text-gray-900">Follow</h4><ul className="mt-2 space-y-2 text-sm text-gray-700"><li><a href="#" className="hover:underline">Instagram</a></li><li><a href="#" className="hover:underline">YouTube</a></li><li><a href="#" className="hover:underline">X / Twitter</a></li></ul></div>
+          </div>
+          <p className="mt-8 text-xs text-gray-500">© {new Date().getFullYear()} UrbanHarvest. All rights reserved.</p>
+        </div>
+      </footer>
+    );
+  }
+
+  function CartDrawer({ items, onClose, onRemove }) {
+    const total = items.reduce((s,it)=>s+it.price,0);
+    return (
+      <div className="fixed inset-0 z-50">
+        <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+        <aside className="absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto bg-white shadow-xl">
+          <div className="flex items-center justify-between border-b border-gray-200 p-4">
+            <h3 className="text-lg font-semibold text-gray-900">Your Cart</h3>
+            <button onClick={onClose} className="rounded-xl border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50">Close</button>
+          </div>
+          <ul className="divide-y divide-gray-200">
+            {items.length===0 && <li className="p-4 text-sm text-gray-600">Your cart is empty.</li>}
+            {items.map((it,idx)=>(
+              <li key={idx} className="flex items-center gap-3 p-4">
+                <img src={it.images[0]} alt="Item" className="h-16 w-16 rounded object-cover" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">{it.name}</p>
+                  <p className="text-xs text-gray-500">{it.unit}</p>
+                </div>
+                <div className="text-sm font-semibold text-gray-900">{currency(it.price)}</div>
+                <button onClick={()=>onRemove(idx)} className="ml-2 rounded-xl border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50">Remove</button>
+              </li>
+            ))}
+          </ul>
+          <div className="sticky bottom-0 border-t border-gray-200 bg-white p-4">
+            <div className="flex items-center justify-between text-sm"><span className="text-gray-600">Subtotal</span><span className="font-semibold text-gray-900">{currency(total)}</span></div>
+            <button className="mt-3 w-full rounded-2xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">Checkout</button>
+            <p className="mt-2 text-xs text-gray-500">Mock checkout only. Add your payment gateway later.</p>
+          </div>
+        </aside>
+      </div>
+    );
+  }
+
+  function App(){
+    const [cartOpen, setCartOpen] = useState(false);
+    const [items, setItems] = useState([]);
+    const [activeProduct, setActiveProduct] = useState(null);
+
+    const addToCart = (p) => {
+      setItems(prev=>[...prev,p]);
+      // simple toast
+      window.alert(p.name + " added to cart");
+    };
+    const removeFromCart = (idx) => setItems(prev => prev.filter((_,i)=>i!==idx));
+
+    return (
+      <div className="min-h-screen bg-white text-gray-900">
+        <Header onOpenCart={()=>setCartOpen(true)} />
+        <main>
+          <Hero />
+          <Shop products={PRODUCTS} onAdd={addToCart} onOpen={setActiveProduct} />
+          <Farms />
+          <Subscriptions />
+          <Learn />
+          <About />
+          <Contact />
+          <Policies />
+        </main>
+        <Footer />
+        {cartOpen && <CartDrawer items={items} onClose={()=>setCartOpen(false)} onRemove={removeFromCart} />}
+        <ProductModal product={activeProduct} onClose={()=>setActiveProduct(null)} onAdd={addToCart} />
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
